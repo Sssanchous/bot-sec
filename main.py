@@ -1,27 +1,22 @@
 import ptbot
-from dotenv import load_dotenv
 import os
 import random
 from pytimeparse import parse
-
-load_dotenv(dotenv_path='tokens.env')
-
-TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-TELEGRAM_CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+from dotenv import load_dotenv
 
 
-def reply(chat_id, question):
+def reply(chat_id, question, bot):
     message_id = bot.send_message(chat_id, "Запускаю таймер...")
-    bot.create_countdown(parse(question), notify_progress, chat_id=chat_id, message_id=message_id, question=question)
-    bot.create_timer(parse(question), wait, chat_id=chat_id, question=question)
+    bot.create_countdown(parse(question), notify_progress, chat_id=chat_id, message_id=message_id, question=question, bot=bot)
+    bot.create_timer(parse(question), wait, chat_id=chat_id, question=question, bot=bot)
 
 
-def wait(chat_id, question):
+def wait(chat_id, question, bot):
     message = 'Время вышло!'
     bot.send_message(chat_id, message)
 
 
-def notify_progress(secs_left, chat_id, message_id, question):
+def notify_progress(secs_left, chat_id, message_id, question, bot):
     message = render_progressbar(parse(question), secs_left, f'Осталось {secs_left} секунд!')
     bot.update_message(chat_id, message_id, message)
 
@@ -35,7 +30,13 @@ def render_progressbar(total, iteration, prefix='', suffix='', length=30, fill='
     return '{0} |{1}| {2}% {3}'.format(prefix, pbar, percent, suffix)
 
 
-if __name__ == '__main__':
-    bot = ptbot.Bot(TELEGRAM_TOKEN)
-    bot.reply_on_message(reply)
+def main():
+    load_dotenv(dotenv_path='tokens.env')
+    telegram_token = os.environ['TELEGRAM_TOKEN']
+    bot = ptbot.Bot(telegram_token)
+    bot.reply_on_message(reply, bot=bot)
     bot.run_bot()
+
+
+if __name__ == '__main__':
+    main()
